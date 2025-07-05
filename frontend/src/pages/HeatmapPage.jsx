@@ -5,6 +5,7 @@ import SearchBar from "../components/SearchBar"
 import HeatmapMarkers from "../components/HeatmapMarkers"
 import Legend from "../components/Legend"
 import Navbar from "../components/Navbar"
+import Footer from '../components/Footer'
 import { MapContainer, TileLayer } from "react-leaflet"
 
 export default function HeatmapPage() {
@@ -51,6 +52,8 @@ export default function HeatmapPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
+    
   )
 }
