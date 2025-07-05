@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+    working_dir: /app
+    command: npm run dev
+    networks:
+      - mapa-network
+
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - trends
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    command: node index.js
+    networks:
+      - mapa-network
+
+  trends:
+    build: ./trends-service
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./trends-service:/app
+    working_dir: /app
+    command: python app.py
+    networks:
+      - mapa-network
+
+networks:
+  mapa-network:
+    driver: bridge
