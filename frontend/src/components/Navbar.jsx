@@ -1,46 +1,51 @@
+// frontend/src/components/Navbar.jsx
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import logo from "./images/geotrendslogo.png"
 
 export default function Navbar() {
-  const [isDarkMode, setIsDarkMode] = useState(true) // Default to dark mode
+  const [isDark, setIsDark] = useState(false)
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains("dark"))
+  }, [])
+
+  const toggle = () => {
     document.documentElement.classList.toggle("dark")
+    setIsDark(!isDark)
   }
 
   return (
-    <nav className="bg-gray-800 shadow-sm">
+    <nav className="bg-gray-100 dark:bg-gray-800 shadow-sm">
       <div className="max-w-full mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
-          {/* Flame Logo */}
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-400 via-red-500 to-red-600 rounded-lg flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="w-8 h-8 text-white" fill="currentColor">
-                <path d="M12.5 2c1.5 2.5 3 5.5 3 8.5 0 3.5-2.5 6.5-6 6.5s-6-3-6-6.5c0-3 1.5-6 3-8.5 1-1.5 2-2.5 3-2.5s2 1 3 2.5z" />
-                <path
-                  d="M12 8c.5 1.5 1 3 1 4.5 0 2-1.5 3.5-3.5 3.5s-3.5-1.5-3.5-3.5c0-1.5.5-3 1-4.5.5-1 1-1.5 1.5-1.5s1 .5 1.5 1.5z"
-                  className="opacity-80"
-                />
-              </svg>
-            </div>
+          {/* Logo (56×56 px) */}
+          <div className="w-14 h-14 overflow-hidden rounded-lg">
+            <img
+              src={logo}
+              alt="GeoTrends Logo"
+              width={56}
+              height={56}
+              className="object-contain"
+            />
           </div>
 
-          {/* Dark mode toggle */}
+          {/* Toggle tema */}
           <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-all duration-200"
+            onClick={toggle}
+            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
             aria-label="Toggle theme"
           >
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
+            {isDark ? (
+              <svg className="w-6 h-6 text-yellow-300" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M6.343 6.343l-1.414-1.414m12.728 0l-1.414 1.414M6.343 17.657l-1.414 1.414M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+              </svg>
+            )}
           </button>
         </div>
       </div>
