@@ -1,12 +1,20 @@
 # Trends Service Dockerfile - Simple para desarrollo
-FROM python:3.11-alpine
+FROM python:3.12-alpine
 
 WORKDIR /app
+
+# Instalar dependencias del sistema necesarias para compilar paquetes Python
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    linux-headers \
+    g++ \
+    libffi-dev
 
 # Copiar requirements
 COPY requirements.txt ./
 
-# Instalar dependencias
+# Instalar dependencias Python
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar código fuente
