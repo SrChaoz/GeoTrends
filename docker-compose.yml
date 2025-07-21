@@ -1,6 +1,5 @@
-version: "3.9"
-
 services:
+  # Frontend Service - React + Vite
   frontend:
     build: ./frontend
     ports:
@@ -9,11 +8,11 @@ services:
       - backend
     volumes:
       - ./frontend:/app
-    working_dir: /app
-    command: npm run dev
+      - /app/node_modules
     networks:
-      - mapa-network
+      - geotrends-network
 
+  # Backend Service - Node.js + Express
   backend:
     build: ./backend
     ports:
@@ -22,22 +21,23 @@ services:
       - trends
     volumes:
       - ./backend:/app
-    working_dir: /app
-    command: node index.js
+      - /app/node_modules
+    environment:
+      # Ruta para comunicación entre contenedores Docker
+      - DOCKER_URL=http://trends:5001/trends
     networks:
-      - mapa-network
+      - geotrends-network
 
+  # Trends Service - Python + Flask
   trends:
-    build: ./trends-service
+    build: ./service
     ports:
       - "5001:5001"
     volumes:
-      - ./trends-service:/app
-    working_dir: /app
-    command: python app.py
+      - ./service:/app
     networks:
-      - mapa-network
+      - geotrends-network
 
 networks:
-  mapa-network:
+  geotrends-network:
     driver: bridge
