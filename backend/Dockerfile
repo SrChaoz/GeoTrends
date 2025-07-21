@@ -1,6 +1,19 @@
-FROM node:18
+# Backend Dockerfile - Simple para desarrollo
+FROM node:18-alpine
+
 WORKDIR /app
-COPY . .
+
+# Copiar package.json y package-lock.json
+COPY package*.json ./
+
+# Instalar dependencias
 RUN npm install
-CMD ["node", "index.js"]
+
+# Copiar código fuente
+COPY . .
+
+# Exponer puerto
 EXPOSE 3000
+
+# Comando para desarrollo
+CMD ["npm", "start"]
