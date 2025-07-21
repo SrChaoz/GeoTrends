@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { fetchTrends } from "../services/apiService"
 
 export default function SearchBar({ keyword, setKeyword, setHeatData }) {
   const [loading, setLoading] = useState(false)
@@ -11,15 +12,10 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
 
     setLoading(true)
     try {
-      const res = await fetch("http://localhost:3000/api/trends", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keyword: keyword.trim() }),
-      })
-      if (!res.ok) throw new Error(res.statusText)
-      setHeatData(await res.json())
+      const data = await fetchTrends(keyword)
+      setHeatData(data)
     } catch (err) {
-      alert("Error al obtener tendencias: " + err.message)
+      alert(err.message)
     } finally {
       setLoading(false)
     }
