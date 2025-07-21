@@ -1,0 +1,95 @@
+# ===============================================
+# GeoTrends - Gitignore Principal del Proyecto
+# ===============================================
+
+# Archivos de entorno y configuración sensible
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs del proyecto
+*.log
+logs/
+
+# Directorios de dependencias
+node_modules/
+__pycache__/
+
+# Archivos de construcción
+dist/
+build/
+*.tgz
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Editores
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+.dockerignore
+
+# Archivos temporales
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Cachés
+.cache/
+.npm/
+.eslintcache
+
+# Coverage
+coverage/
+*.lcov
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads y archivos de usuarios
+uploads/
+files/
+
+# Archivos de sesión
+sessions/
+
+# Archivos específicos del proyecto
+cache.json
+
+# Archivos de backup
+*.backup
+*.bak
+
+# Documentación generada automáticamente
+docs/generated/
+
+# Archivos de desarrollo local
+local/
+dev/
+
+# SSL certificates (si los hubiera)
+*.pem
+*.key
+*.crt
+
+# Archivos de configuración local de IDE
+.project
+.classpath
+.settings/
+
+docs/
+
+Makefile
+Makefile.local
