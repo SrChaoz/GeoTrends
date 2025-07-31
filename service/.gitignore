@@ -171,3 +171,5 @@ static/uploads/
 
 # Docker
 .dockerignore
+
+cache.json
