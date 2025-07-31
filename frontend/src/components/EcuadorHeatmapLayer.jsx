@@ -52,19 +52,77 @@ const findProvinceData = (provinceName, trendsData) => {
  * Mapeo de nombres de provincias para compatibilidad
  */
 const PROVINCE_NAME_MAPPING = {
-  'SANTO DOMINGO DE LOS TSACHILAS': 'Santo Domingo de los Tsáchilas',
-  'SANTO DOMINGO': 'Santo Domingo de los Tsáchilas',
-  'BOLIVAR': 'Bolívar',
-  'CANAR': 'Cañar',
-  'GALAPAGOS': 'Galápagos',
+  // Provincias que NO vienen con "Provincia de..."
+  'AZUAY': 'Azuay',
+  'EL ORO': 'El Oro',
+  'GUAYAS': 'Guayas',
+  'ISLAS GALAPAGOS': 'Islas Galápagos',
+  'GALAPAGOS': 'Islas Galápagos',
+  'LOJA': 'Loja',
+  'LOS RIOS': 'Los Ríos',
   'MANABI': 'Manabí',
-  'SUCUMBIOS': 'Sucumbíos'
+  'PICHINCHA': 'Pichincha',
+  'TUNGURAHUA': 'Tungurahua',
+  
+  // Provincias amazónicas - mapeo correcto con "Provincia de..."
+  'MORONA SANTIAGO': 'Provincia de Morona Santiago',
+  'PASTAZA': 'Provincia de Pastaza',
+  'ZAMORA CHINCHIPE': 'Provincia de Zamora Chinchipe',
+  'ORELLANA': 'Provincia de Orellana',
+  'SUCUMBIOS': 'Provincia de Sucumbíos',
+  
+  // Otras provincias que vienen con "Provincia de..."
+  'BOLIVAR': 'Provincia de Bolívar',
+  'CANAR': 'Provincia de Cañar',
+  'CARCHI': 'Provincia de Carchi',
+  'CHIMBORAZO': 'Provincia de Chimborazo',
+  'COTOPAXI': 'Provincia de Cotopaxi',
+  'ESMERALDAS': 'Provincia de Esmeraldas',
+  'IMBABURA': 'Provincia de Imbabura',
+  'NAPO': 'Provincia de Napo',
+  'SANTA ELENA': 'Provincia de Santa Elena',
+  'SANTO DOMINGO DE LOS TSACHILAS': 'Provincia de Santo Domingo de los Tsáchilas',
+  'SANTO DOMINGO': 'Provincia de Santo Domingo de los Tsáchilas',
+  
+  // Variaciones con tildes
+  'SUCUMBÍOS': 'Provincia de Sucumbíos',
+  'CAÑAR': 'Provincia de Cañar',
+  'BOLÍVAR': 'Provincia de Bolívar',
+  'MANABÍ': 'Manabí'
 };
 
 const EcuadorHeatmapLayer = ({ trendsData, heatData }) => {
   // Determinar qué tipo de datos usar
   const dataToUse = useMemo(() => {
-    return trendsData || (heatData ? Object.entries(heatData).map(([location, value]) => ({ location, value })) : []);
+    const data = trendsData || (heatData ? Object.entries(heatData).map(([location, value]) => ({ location, value })) : []);
+    
+    // Debug: mostrar datos disponibles
+    if (data && data.length > 0) {
+      console.log('📊 Datos de tendencias disponibles:');
+      data.forEach(item => {
+        console.log(`  • ${item.location}: ${item.value}`);
+      });
+      
+      // Verificar específicamente provincias amazónicas
+      const amazonicas = data.filter(item => 
+        item.location && (
+          item.location.toLowerCase().includes('morona') ||
+          item.location.toLowerCase().includes('pastaza') ||
+          item.location.toLowerCase().includes('zamora') ||
+          item.location.toLowerCase().includes('orellana') ||
+          item.location.toLowerCase().includes('sucumbios') ||
+          item.location.toLowerCase().includes('sucumbíos')
+        )
+      );
+      
+      if (amazonicas.length > 0) {
+        console.log('🌳 Provincias amazónicas encontradas en datos:', amazonicas);
+      } else {
+        console.log('⚠️ No se encontraron provincias amazónicas en los datos');
+      }
+    }
+    
+    return data;
   }, [trendsData, heatData]);
 
   // Memoizar el valor máximo para normalización
@@ -80,6 +138,15 @@ const EcuadorHeatmapLayer = ({ trendsData, heatData }) => {
     const provinceData = findProvinceData(mappedName, dataToUse);
     const value = provinceData?.value || 0;
     const normalizedValue = maxValue > 0 ? value / maxValue : 0;
+
+    // Debug para provincias amazónicas
+    if (provinceName && provinceName.toUpperCase().includes('MORONA') || 
+        provinceName.toUpperCase().includes('PASTAZA') ||
+        provinceName.toUpperCase().includes('ZAMORA') ||
+        provinceName.toUpperCase().includes('ORELLANA') ||
+        provinceName.toUpperCase().includes('SUCUMBIOS')) {
+      console.log(`🌳 Provincia amazónica - Original: "${provinceName}", Mapeado: "${mappedName}", Datos encontrados:`, provinceData, `Valor: ${value}`);
+    }
 
     return {
       fillColor: getIntensityColor(normalizedValue),

@@ -48,9 +48,28 @@ def get_trends_by_region(keyword):
 
         df = pytrends.interest_by_region(resolution='province', inc_low_vol=True)
 
+        print(f"🔍 Debug - Provincias encontradas por Google Trends:")
+        print(f"📊 Total de provincias en el DataFrame: {len(df)}")
+        print(f"📋 Lista completa de provincias:")
+        for idx, provincia in enumerate(df.index):
+            print(f"  {idx+1:2d}. {provincia}")
+        
+        # Verificar específicamente provincias amazónicas
+        provincias_amazonicas = ['Orellana', 'Sucumbíos', 'Pastaza', 'Morona Santiago', 'Zamora Chinchipe']
+        print(f"\n🌳 Verificando provincias amazónicas:")
+        for prov in provincias_amazonicas:
+            esta_presente = any(prov.lower() in provincia.lower() for provincia in df.index)
+            print(f"  • {prov}: {'✅ SÍ' if esta_presente else '❌ NO'}")
+
         if keyword in df.columns:
             print(f"Consulta exitosa para '{keyword}'")
             result = df[keyword].dropna().astype(int).to_dict()
+            
+            # Debug de los valores obtenidos
+            print(f"\n📈 Valores obtenidos para '{keyword}':")
+            for provincia, valor in sorted(result.items(), key=lambda x: x[1], reverse=True):
+                print(f"  • {provincia}: {valor}")
+            
             save_cache(keyword, result)
             return result
         else:

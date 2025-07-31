@@ -15,6 +15,25 @@ def trends():
 
     try:
         result = get_trends_by_region(keyword)
+        
+        # Debug: mostrar qué se envía al frontend
+        print(f"\n📤 Enviando al frontend para '{keyword}':")
+        print(f"📊 Total de provincias con datos: {len(result)}")
+        
+        # Verificar provincias amazónicas en el resultado final
+        provincias_amazonicas = ['orellana', 'sucumbios', 'sucumbíos', 'pastaza', 'morona', 'zamora']
+        amazonicas_con_datos = []
+        for provincia, valor in result.items():
+            if any(amaz in provincia.lower() for amaz in provincias_amazonicas):
+                amazonicas_con_datos.append(f"{provincia}: {valor}")
+        
+        if amazonicas_con_datos:
+            print(f"🌳 Provincias amazónicas en resultado final:")
+            for item in amazonicas_con_datos:
+                print(f"  • {item}")
+        else:
+            print(f"⚠️  NO hay provincias amazónicas en el resultado final")
+            
         return jsonify(result)
     except Exception as e:
         error_message = str(e)
