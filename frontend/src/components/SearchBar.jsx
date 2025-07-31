@@ -40,18 +40,18 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
   ]
 
   return (
-    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 shadow-2xl">
+    <div className="bg-white/10 dark:bg-white/90 backdrop-blur-md border border-white/20 dark:border-gray-200 rounded-3xl p-6 shadow-2xl">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+        <h2 className="text-2xl font-bold text-white dark:text-gray-900 mb-2 flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-r from-ecuador-400 to-ecuador-600 rounded-lg flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-white dark:text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
             </svg>
           </div>
           Filtros de Búsqueda
         </h2>
-        <p className="text-white/70 text-sm">
+        <p className="text-white/70 dark:text-gray-600 text-sm">
           Personaliza tu búsqueda de tendencias
         </p>
       </div>
@@ -59,7 +59,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Tema de Interés */}
         <div className="space-y-3">
-          <label htmlFor="tema" className="block text-sm font-semibold text-white">
+          <label htmlFor="tema" className="block text-sm font-semibold text-white dark:text-gray-900">
             Tema de Interés
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -72,7 +72,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
                 className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                   selectedTheme === theme.value
                     ? `bg-gradient-to-r ${theme.color} text-white scale-105 shadow-lg`
-                    : 'bg-white/10 text-white/80 hover:bg-white/20 hover:scale-102'
+                    : 'bg-white/10 dark:bg-white/80 text-white/80 dark:text-gray-700 hover:bg-white/20 dark:hover:bg-white/90 hover:scale-102'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {theme.label}
@@ -83,7 +83,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
 
         {/* Producto/Término */}
         <div className="space-y-3">
-          <label htmlFor="producto" className="block text-sm font-semibold text-white">
+          <label htmlFor="producto" className="block text-sm font-semibold text-white dark:text-gray-900">
             Término de Búsqueda
           </label>
           <div className="relative">
@@ -94,10 +94,10 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
               onChange={(e) => setKeyword(e.target.value)}
               disabled={loading}
               placeholder="Ej: iPhone, pizza, fútbol..."
-              className="w-full px-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-ecuador-400 focus:border-transparent transition-all duration-200"
+              className="w-full px-4 py-4 bg-white/10 dark:bg-white/80 backdrop-blur-sm border border-white/20 dark:border-gray-300 rounded-xl text-white dark:text-gray-900 placeholder-white/50 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-ecuador-400 focus:border-transparent transition-all duration-200"
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-white/40 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -106,7 +106,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
 
         {/* Período */}
         <div className="space-y-3">
-          <label htmlFor="periodo" className="block text-sm font-semibold text-white">
+          <label htmlFor="periodo" className="block text-sm font-semibold text-white dark:text-gray-900">
             Período de Análisis
           </label>
           <div className="grid grid-cols-2 gap-2">
@@ -119,7 +119,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
                 className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                   selectedPeriod === period.value
                     ? 'bg-ecuador-500 text-white scale-105 shadow-lg'
-                    : 'bg-white/10 text-white/80 hover:bg-white/20 hover:scale-102'
+                    : 'bg-white/10 dark:bg-white/80 text-white/80 dark:text-gray-700 hover:bg-white/20 dark:hover:bg-white/90 hover:scale-102'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {period.label}
@@ -158,7 +158,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
 
         {/* Indicador de estado */}
         {keyword && !loading && (
-          <div className="text-center text-white/70 text-sm">
+          <div className="text-center text-white/70 dark:text-gray-600 text-sm">
             <span className="inline-flex items-center gap-2">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
               Listo para buscar: <span className="font-semibold">"{keyword}"</span>
