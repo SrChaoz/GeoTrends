@@ -39,13 +39,31 @@ def trends():
         error_message = str(e)
 
         # Log en consola
-        print("Error al consultar pytrends:", error_message)
+        print(f"❌ Error al consultar pytrends: {error_message}")
 
-        # Si Google bloqueó (429), lo informamos claramente
-        if "429" in error_message or "Too Many Requests" in error_message:
-            return jsonify({'error': 'Google Trends bloqueó la solicitud (código 429). Intenta con un proxy diferente o más tarde.'}), 429
+        # Si Google bloqueó (429), informar claramente
+        if "429" in error_message or "Too Many Requests" in error_message or "bloqueado temporalmente" in error_message:
+            return jsonify({
+                'error': 'Google Trends ha bloqueado temporalmente las consultas',
+                'mensaje': 'Hemos realizado demasiadas consultas. Por favor, espera 15-30 minutos antes de intentar nuevamente.',
+                'codigo': 429,
+                'recomendacion': 'Usa términos de búsqueda que ya están en caché o espera un tiempo antes de buscar nuevos términos.'
+            }), 429
 
-        return jsonify({'error': 'Error al consultar pytrends', 'detalles': error_message}), 500
+        # Error de conexión
+        elif "conexión" in error_message.lower() or "connection" in error_message.lower():
+            return jsonify({
+                'error': 'Error de conexión',
+                'mensaje': 'No se pudo conectar con Google Trends. Revisa tu conexión a internet.',
+                'codigo': 503
+            }), 503
+
+        # Error genérico
+        return jsonify({
+            'error': 'Error al consultar Google Trends', 
+            'detalles': error_message,
+            'codigo': 500
+        }), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

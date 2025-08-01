@@ -2,10 +2,11 @@ from pytrends.request import TrendReq
 import os
 import json
 import time
+import random
 from datetime import datetime, timedelta
 
 CACHE_FILE = "cache.json"
-CACHE_EXPIRY_HOURS = 6  # Cache expira después de 6 horas
+CACHE_EXPIRY_HOURS = 12  # Aumentado a 12 horas para reducir consultas a Google
 
 def get_cached_data(keyword):
     if os.path.exists(CACHE_FILE):
@@ -66,15 +67,50 @@ def get_trends_by_region(keyword):
     try:
         print(f"🔍 Consultando tendencias NUEVAS para '{keyword}' en Google Trends...")
         
-        # Headers personalizados para simular un navegador real
+        # Headers avanzados para evitar detección como bot
+        user_agents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0'
+        ]
+        
+        # Seleccionar user agent aleatorio
+        selected_ua = random.choice(user_agents)
+        
         requests_args = {
             'headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/123.0.0.0 Safari/537.36',
-                'Accept-Language': 'es-EC,es;q=0.9,en;q=0.8'
-            }
+                'User-Agent': selected_ua,
+                'Accept-Language': 'es-EC,es-419;q=0.9,es;q=0.8,en;q=0.7',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Encoding': 'gzip, deflate, br, zstd',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'same-origin',
+                'Sec-Fetch-User': '?1',
+                'Sec-Ch-Ua': '"Chromium";v="123", "Not:A-Brand";v="8"',
+                'Sec-Ch-Ua-Mobile': '?0',
+                'Sec-Ch-Ua-Platform': '"Windows"',
+                'Cache-Control': 'max-age=0'
+            },
+            'verify': True
         }
         
-        pytrends = TrendReq(hl='es-EC', tz=360, requests_args=requests_args)
+        # Configuración simplificada de pytrends (timeout separado)
+        pytrends = TrendReq(
+            hl='es-EC', 
+            tz=360, 
+            timeout=(10, 30),  # (connect_timeout, read_timeout)
+            requests_args=requests_args
+        )
+        
+        # Pequeño delay solo al inicializar (no impacta UX significativamente)
+        time.sleep(random.uniform(1, 3))
+        
         pytrends.build_payload([keyword], geo='EC', timeframe='now 7-d')
 
         df = pytrends.interest_by_region(resolution='province', inc_low_vol=True)
@@ -108,5 +144,20 @@ def get_trends_by_region(keyword):
             return {}
 
     except Exception as e:
-        print(f"Error al consultar tendencias: {e}")
-        raise Exception(f"No se pudo obtener datos de tendencias para '{keyword}': {e}")
+        error_msg = str(e)
+        print(f"❌ Error al consultar tendencias: {error_msg}")
+        
+        # Detectar si es error 429 y proporcionar mensaje específico
+        if "429" in error_msg or "Too Many Requests" in error_msg:
+            print(f"🚫 Google Trends bloqueó la consulta (código 429)")
+            print(f"💡 Recomendación: Esperar 15-30 minutos antes de hacer nuevas consultas")
+            raise Exception(f"Google Trends ha bloqueado temporalmente las consultas. Intenta más tarde.")
+        
+        # Otros errores de conexión
+        elif "timeout" in error_msg.lower() or "connection" in error_msg.lower():
+            print(f"🌐 Error de conexión con Google Trends")
+            raise Exception(f"Error de conexión con Google Trends. Revisa tu conexión a internet.")
+        
+        # Error genérico
+        else:
+            raise Exception(f"No se pudo obtener datos de tendencias para '{keyword}': {error_msg}")
