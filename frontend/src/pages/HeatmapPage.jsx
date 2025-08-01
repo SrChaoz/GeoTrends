@@ -6,10 +6,17 @@ import EcuadorHeatmapLayer from "../components/EcuadorHeatmapLayer"
 import Legend from "../components/Legend"
 import Navbar from "../components/Navbar"
 import { MapContainer, TileLayer } from "react-leaflet"
+import "../styles/components/HeatmapPage.css"
 
 export default function HeatmapPage() {
   const [keyword, setKeyword] = useState("")
   const [heatData, setHeatData] = useState({})
+  const [searchStatus, setSearchStatus] = useState({
+    hasSearched: false,
+    hasError: false,
+    errorMessage: "",
+    lastKeyword: ""
+  })
 
   return (
     <div className="min-h-screen w-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-blue-50 dark:via-white dark:to-blue-50">
@@ -23,7 +30,8 @@ export default function HeatmapPage() {
               <SearchBar 
                 keyword={keyword} 
                 setKeyword={setKeyword} 
-                setHeatData={setHeatData} 
+                setHeatData={setHeatData}
+                setSearchStatus={setSearchStatus}
               />
             </div>
 
@@ -48,7 +56,7 @@ export default function HeatmapPage() {
                     zoom={7}
                     minZoom={6}
                     maxZoom={10}
-                    className="h-full w-full rounded-b-3xl"
+                    className="h-full w-full"
                     style={{ backgroundColor: "#f8fafc" }}
                     zoomControl={false}
                     attributionControl={false}
@@ -80,16 +88,41 @@ export default function HeatmapPage() {
                   {/* Indicador de datos */}
                   {Object.keys(heatData).length === 0 && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-[999]">
-                      <div className="bg-white/90 dark:bg-white/95 backdrop-blur-sm p-8 rounded-2xl text-center shadow-2xl">
-                        <svg className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7" />
-                        </svg>
-                        <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-800 mb-2">
-                          Busca una tendencia
-                        </h3>
-                        <p className="text-gray-500 dark:text-gray-600">
-                          Ingresa un término para ver los datos en el mapa
-                        </p>
+                      <div className="bg-white/90 dark:bg-white/95 backdrop-blur-sm p-8 rounded-2xl text-center shadow-2xl max-w-md">
+                        {searchStatus.hasError ? (
+                          <>
+                            <svg className="w-16 h-16 mx-auto text-red-400 mb-4" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+                            </svg>
+                            <h3 className="text-xl font-semibold text-red-600 dark:text-red-700 mb-2">
+                              Sin Datos Encontrados
+                            </h3>
+                            <p className="text-red-500 dark:text-red-600 mb-3">
+                              No se encontraron tendencias para "{searchStatus.lastKeyword}"
+                            </p>
+                            <div className="text-gray-600 dark:text-gray-700 text-sm">
+                              <p className="mb-2">💡 <strong>Sugerencias:</strong></p>
+                              <ul className="text-left space-y-1">
+                                <li>• Verifica la escritura de la palabra</li>
+                                <li>• Usa términos más generales</li>
+                                <li>• Prueba palabras en español</li>
+                                <li>• Intenta con sinónimos</li>
+                              </ul>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-800 mb-2">
+                              Busca una tendencia
+                            </h3>
+                            <p className="text-gray-500 dark:text-gray-600">
+                              Ingresa un término para ver los datos en el mapa
+                            </p>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}

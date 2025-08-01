@@ -3,21 +3,69 @@
 import { useState } from "react"
 import { fetchTrends } from "../services/apiService"
 
-export default function SearchBar({ keyword, setKeyword, setHeatData }) {
+export default function SearchBar({ keyword, setKeyword, setHeatData, setSearchStatus }) {
   const [loading, setLoading] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState("")
   const [selectedPeriod, setSelectedPeriod] = useState("month")
+  const [searchError, setSearchError] = useState(null)
+  const [lastSearchedKeyword, setLastSearchedKeyword] = useState("")
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!keyword.trim()) return
 
     setLoading(true)
+    setSearchError(null)
+    setLastSearchedKeyword(keyword.trim())
+    
     try {
       const data = await fetchTrends(keyword)
-      setHeatData(data)
+      
+      // Validar si hay datos reales en las provincias
+      const hasData = data && Object.keys(data).length > 0 && Object.values(data).some(value => value > 0)
+      
+      if (!hasData) {
+        const errorMsg = `No se encontraron datos para "${keyword.trim()}". Verifica la escritura o prueba con otro término.`
+        setSearchError(errorMsg)
+        setHeatData({}) // Limpiar datos anteriores
+        
+        // Actualizar status si la función existe
+        if (setSearchStatus) {
+          setSearchStatus({
+            hasSearched: true,
+            hasError: true,
+            errorMessage: errorMsg,
+            lastKeyword: keyword.trim()
+          })
+        }
+      } else {
+        setHeatData(data)
+        setSearchError(null)
+        
+        // Actualizar status de éxito si la función existe
+        if (setSearchStatus) {
+          setSearchStatus({
+            hasSearched: true,
+            hasError: false,
+            errorMessage: "",
+            lastKeyword: keyword.trim()
+          })
+        }
+      }
     } catch (err) {
-      alert(err.message)
+      const errorMsg = `Error al buscar "${keyword.trim()}": ${err.message}`
+      setSearchError(errorMsg)
+      setHeatData({}) // Limpiar datos en caso de error
+      
+      // Actualizar status de error si la función existe
+      if (setSearchStatus) {
+        setSearchStatus({
+          hasSearched: true,
+          hasError: true,
+          errorMessage: errorMsg,
+          lastKeyword: keyword.trim()
+        })
+      }
     } finally {
       setLoading(false)
     }
@@ -40,9 +88,9 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
   ]
 
   return (
-    <div className="bg-white/10 dark:bg-white/90 backdrop-blur-md border border-white/20 dark:border-gray-200 rounded-3xl p-6 shadow-2xl">
+    <div className="bg-white/10 dark:bg-white/90 backdrop-blur-md border border-white/20 dark:border-gray-200 rounded-3xl p-6 shadow-2xl h-[700px] lg:h-[830px] flex flex-col">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-4">
         <h2 className="text-2xl font-bold text-white dark:text-gray-900 mb-2 flex items-center gap-3">
           <div className="w-8 h-8 bg-gradient-to-r from-ecuador-400 to-ecuador-600 rounded-lg flex items-center justify-center">
             <svg className="w-5 h-5 text-white dark:text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -56,9 +104,9 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="flex-1 flex flex-col space-y-4">
         {/* Tema de Interés */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <label htmlFor="tema" className="block text-sm font-semibold text-white dark:text-gray-900">
             Tema de Interés
           </label>
@@ -69,7 +117,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
                 type="button"
                 onClick={() => setSelectedTheme(theme.value)}
                 disabled={loading}
-                className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={`p-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   selectedTheme === theme.value
                     ? `bg-gradient-to-r ${theme.color} text-white scale-105 shadow-lg`
                     : 'bg-white/10 dark:bg-white/80 text-white/80 dark:text-gray-700 hover:bg-white/20 dark:hover:bg-white/90 hover:scale-102'
@@ -82,7 +130,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
         </div>
 
         {/* Producto/Término */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <label htmlFor="producto" className="block text-sm font-semibold text-white dark:text-gray-900">
             Término de Búsqueda
           </label>
@@ -105,7 +153,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
         </div>
 
         {/* Período */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <label htmlFor="periodo" className="block text-sm font-semibold text-white dark:text-gray-900">
             Período de Análisis
           </label>
@@ -116,7 +164,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
                 type="button"
                 onClick={() => setSelectedPeriod(period.value)}
                 disabled={loading}
-                className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={`p-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   selectedPeriod === period.value
                     ? 'bg-ecuador-500 text-white scale-105 shadow-lg'
                     : 'bg-white/10 dark:bg-white/80 text-white/80 dark:text-gray-700 hover:bg-white/20 dark:hover:bg-white/90 hover:scale-102'
@@ -129,11 +177,12 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
         </div>
 
         {/* Botón de búsqueda */}
-        <button
-          type="submit"
-          disabled={loading || !keyword.trim()}
-          className="w-full py-4 px-6 rounded-xl font-bold text-lg bg-gradient-to-r from-ecuador-500 to-ecuador-600 hover:from-ecuador-600 hover:to-ecuador-700 text-white disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 hover:scale-105 shadow-lg disabled:scale-100"
-        >
+        <div className="flex-grow flex flex-col justify-end space-y-3">
+          <button
+            type="submit"
+            disabled={loading || !keyword.trim()}
+            className="w-full py-3.5 px-6 rounded-xl font-bold text-lg bg-gradient-to-r from-ecuador-500 to-ecuador-600 hover:from-ecuador-600 hover:to-ecuador-700 text-white disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 hover:scale-105 shadow-lg disabled:scale-100"
+          >
           {loading ? (
             <>
               <svg className="animate-spin -ml-1 mr-3 h-6 w-6 text-white" viewBox="0 0 24 24" fill="none">
@@ -157,7 +206,7 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
         </button>
 
         {/* Indicador de estado */}
-        {keyword && !loading && (
+        {keyword && !loading && !searchError && (
           <div className="text-center text-white/70 dark:text-gray-600 text-sm">
             <span className="inline-flex items-center gap-2">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -165,6 +214,39 @@ export default function SearchBar({ keyword, setKeyword, setHeatData }) {
             </span>
           </div>
         )}
+
+        {/* Notificación de error/sin datos */}
+        {searchError && (
+          <div className="bg-red-500/10 dark:bg-red-100/80 border border-red-500/20 dark:border-red-300 rounded-xl p-3 text-center">
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <svg className="w-4 h-4 text-red-400 dark:text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+              </svg>
+              <span className="text-red-400 dark:text-red-700 font-semibold text-xs">Sin Resultados</span>
+            </div>
+            <p className="text-red-300 dark:text-red-600 text-xs">
+              {searchError}
+            </p>
+            <div className="mt-2 text-red-200 dark:text-red-500 text-xs">
+              
+            </div>
+          </div>
+        )}
+
+        {/* Indicador de búsqueda exitosa */}
+        {lastSearchedKeyword && !searchError && !loading && (
+          <div className="bg-green-500/10 dark:bg-green-100/80 border border-green-500/20 dark:border-green-300 rounded-xl p-2 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <svg className="w-4 h-4 text-green-400 dark:text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+              </svg>
+              <span className="text-green-400 dark:text-green-700 font-medium text-xs">
+                Datos encontrados para "{lastSearchedKeyword}"
+              </span>
+            </div>
+          </div>
+        )}
+        </div>
       </form>
     </div>
   )

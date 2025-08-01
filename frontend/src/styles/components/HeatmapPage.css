@@ -1,0 +1,22 @@
+/* Estilos específicos para el mapa de HeatmapPage */
+
+/* Asegurar que el contenedor del mapa solo tenga bordes redondeados en la parte inferior */
+.leaflet-container {
+  border-radius: 0 !important;
+  border-bottom-left-radius: 1.5rem !important;
+  border-bottom-right-radius: 1.5rem !important;
+}
+
+/* Asegurar que las capas del mapa mantengan la forma correcta */
+.leaflet-map-pane {
+  border-radius: 0 !important;
+  border-bottom-left-radius: 1.5rem !important;
+  border-bottom-right-radius: 1.5rem !important;
+}
+
+/* Limpiar cualquier borde redondeado en las capas de tiles */
+.leaflet-tile-pane {
+  border-radius: 0 !important;
+  border-bottom-left-radius: 1.5rem !important;
+  border-bottom-right-radius: 1.5rem !important;
+}
