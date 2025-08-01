@@ -1,15 +1,37 @@
 from pytrends.request import TrendReq
 import os
 import json
+import time
+from datetime import datetime, timedelta
 
 CACHE_FILE = "cache.json"
+CACHE_EXPIRY_HOURS = 6  # Cache expira después de 6 horas
 
 def get_cached_data(keyword):
     if os.path.exists(CACHE_FILE):
         with open(CACHE_FILE, "r") as f:
             try:
                 cache = json.load(f)
-                return cache.get(keyword)
+                keyword_data = cache.get(keyword)
+                
+                if keyword_data:
+                    # Verificar si tiene timestamp (para retrocompatibilidad)
+                    if isinstance(keyword_data, dict) and 'timestamp' in keyword_data:
+                        timestamp = keyword_data['timestamp']
+                        cache_time = datetime.fromtimestamp(timestamp)
+                        expiry_time = cache_time + timedelta(hours=CACHE_EXPIRY_HOURS)
+                        
+                        if datetime.now() < expiry_time:
+                            print(f"✅ Cache válido para '{keyword}' (expira en {expiry_time.strftime('%H:%M:%S')})")
+                            return keyword_data['data']
+                        else:
+                            print(f"⏰ Cache expirado para '{keyword}' (expiró hace {datetime.now() - expiry_time})")
+                            return None
+                    else:
+                        # Cache antiguo sin timestamp - considerarlo expirado
+                        print(f"🔄 Cache sin timestamp para '{keyword}' - requiere actualización")
+                        return None
+                        
             except json.JSONDecodeError:
                 return None
     return None
@@ -22,18 +44,27 @@ def save_cache(keyword, data):
                 cache = json.load(f)
             except json.JSONDecodeError:
                 cache = {}
-    cache[keyword] = data
+    
+    # Guardar con timestamp actual
+    cache[keyword] = {
+        'data': data,
+        'timestamp': time.time(),
+        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    
     with open(CACHE_FILE, "w") as f:
-        json.dump(cache, f)
+        json.dump(cache, f, indent=2)
+    
+    print(f"💾 Cache actualizado para '{keyword}' - válido hasta {(datetime.now() + timedelta(hours=CACHE_EXPIRY_HOURS)).strftime('%Y-%m-%d %H:%M:%S')}")
 
 def get_trends_by_region(keyword):
     cached = get_cached_data(keyword)
     if cached:
-        print(f"Usando datos en caché para '{keyword}'")
+        print(f"📋 Usando datos en caché para '{keyword}' (datos actualizados)")
         return cached
 
     try:
-        print(f"Consultando tendencias para '{keyword}'")
+        print(f"🔍 Consultando tendencias NUEVAS para '{keyword}' en Google Trends...")
         
         # Headers personalizados para simular un navegador real
         requests_args = {
