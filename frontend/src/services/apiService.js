@@ -10,18 +10,22 @@ import { API_CONFIG, DEV_CONFIG } from './config';
  */
 const getEnvironment = () => {
   const hostname = window.location.hostname;
-  
-  // Si contiene 'run.app', estamos en Google Cloud Run (producción)
-  if (hostname.includes('run.app')) {
+
+  // Producción: Vercel, Render, Cloud Run
+  if (
+    hostname.includes('vercel.app') ||
+    hostname.includes('onrender.com') ||
+    hostname.includes('run.app')
+  ) {
     return 'production';
   }
-  
-  // Si no es localhost ni 127.0.0.1, probablemente es Docker
+
+  // Docker
   if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
     return 'docker';
   }
-  
-  // Por defecto, entorno local
+
+  // Local
   return 'local';
 };
 
