@@ -7,6 +7,15 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    service: 'GeoTrends Backend'
+  });
+});
+
 app.use('/api/trends', trendsRoutes);
 
 app.use((err, req, res, next) => {
@@ -14,6 +23,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-app.listen(3000, () => {
-  console.log('Backend escuchando en puerto 3000');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Backend escuchando en puerto ${PORT}`);
 });

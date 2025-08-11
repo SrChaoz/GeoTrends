@@ -1,9 +1,18 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from trends.fetch import get_trends_by_region
+import os
 
 app = Flask(__name__)
 CORS(app)
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        'status': 'OK',
+        'service': 'GeoTrends Service',
+        'timestamp': __import__('datetime').datetime.now().isoformat()
+    }), 200
 
 @app.route('/trends', methods=['POST'])
 def trends():
@@ -66,4 +75,6 @@ def trends():
         }), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    port = int(os.environ.get('PORT', 5001))
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)

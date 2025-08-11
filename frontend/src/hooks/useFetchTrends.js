@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { fetchTrends as apiFetchTrends } from '../services/apiService';
 
 const useFetchTrends = () => {
   const [data, setData] = useState(null);
@@ -10,19 +11,7 @@ const useFetchTrends = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:3000/api/trends', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ keyword }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
+      const result = await apiFetchTrends(keyword);
       setData(result);
     } catch (err) {
       setError(err.message);

@@ -1,0 +1,4 @@
+# Render.com service configuration
+# Este archivo le dice a Render cómo ejecutar el servicio
+
+web: gunicorn --bind 0.0.0.0:$PORT app:app

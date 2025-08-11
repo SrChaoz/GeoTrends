@@ -1,0 +1,142 @@
+# Google Cloud Build configuration para deploy automático
+steps:
+  # Build de la imagen del servicio Python (trends)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/geotrends-service:$BUILD_ID'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/geotrends-service:latest'
+      - './service'
+    id: 'build-service'
+
+  # Build de la imagen del backend (Node.js)
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/geotrends-backend:$BUILD_ID'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/geotrends-backend:latest'
+      - './backend'
+    id: 'build-backend'
+
+  # Build de la imagen del frontend (React)
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/geotrends-frontend:$BUILD_ID'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/geotrends-frontend:latest'
+      - '--build-arg'
+      - 'VITE_BACKEND_URL_PRODUCTION=https://geotrends-backend-us-central1-geotrends-462904.a.run.app'
+      - './frontend'
+    id: 'build-frontend'
+
+  # Push de todas las imágenes
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/geotrends-service:$BUILD_ID']
+    id: 'push-service'
+  
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/geotrends-service:latest']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/geotrends-backend:$BUILD_ID']
+    id: 'push-backend'
+  
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/geotrends-backend:latest']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/geotrends-frontend:$BUILD_ID']
+    id: 'push-frontend'
+  
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/geotrends-frontend:latest']
+
+  # Deploy del servicio Python
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'geotrends-service'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/geotrends-service:$BUILD_ID'
+      - '--region'
+      - '$_REGION'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '5001'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+    id: 'deploy-service'
+
+  # Deploy del backend Node.js
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'geotrends-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/geotrends-backend:$BUILD_ID'
+      - '--region'
+      - '$_REGION'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '3000'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--set-env-vars'
+      - 'DOCKER_URL=https://geotrends-service-us-central1-geotrends-462904.a.run.app/trends'
+    id: 'deploy-backend'
+    waitFor: ['deploy-service']
+
+  # Deploy del frontend React
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'geotrends-frontend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/geotrends-frontend:$BUILD_ID'
+      - '--region'
+      - '$_REGION'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '80'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '5'
+    id: 'deploy-frontend'
+    waitFor: ['deploy-backend']
+
+# Variables por defecto
+substitutions:
+  _REGION: us-central1
+
+# Configuración adicional
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+timeout: '1200s'

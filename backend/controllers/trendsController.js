@@ -22,6 +22,25 @@ const getTrends = async (req, res, next) => {
     const data = await fetchTrendsFromService(keyword);
     res.json(data);
   } catch (error) {
+    // Manejar errores específicos del servicio de trends
+    if (error.code === 'RATE_LIMITED') {
+      return res.status(429).json({
+        error: 'Límite de consultas excedido',
+        mensaje: error.message,
+        tipo: 'RATE_LIMITED',
+        recomendacion: 'Espera 15-30 minutos antes de intentar nuevamente'
+      });
+    }
+    
+    if (error.code === 'SERVICE_ERROR') {
+      return res.status(503).json({
+        error: 'Error en el servicio de tendencias',
+        mensaje: error.message,
+        tipo: 'SERVICE_ERROR'
+      });
+    }
+    
+    // Para otros errores, usar el middleware de manejo de errores
     next(error);
   }
 };

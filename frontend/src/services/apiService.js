@@ -5,12 +5,24 @@
 import { API_CONFIG, DEV_CONFIG } from './config';
 
 /**
- * Detecta si la aplicación está ejecutándose en Docker o localmente
- * @returns {boolean} true si está en Docker, false si es local
+ * Detecta el entorno de ejecución de la aplicación
+ * @returns {string} 'production', 'docker', o 'local'
  */
-const isDockerEnvironment = () => {
-  // En Docker, el hostname será diferente de 'localhost'
-  return window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+const getEnvironment = () => {
+  const hostname = window.location.hostname;
+  
+  // Si contiene 'run.app', estamos en Google Cloud Run (producción)
+  if (hostname.includes('run.app')) {
+    return 'production';
+  }
+  
+  // Si no es localhost ni 127.0.0.1, probablemente es Docker
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    return 'docker';
+  }
+  
+  // Por defecto, entorno local
+  return 'local';
 };
 
 /**
@@ -18,10 +30,16 @@ const isDockerEnvironment = () => {
  * @returns {string} URL base del backend
  */
 const getBackendBaseUrl = () => {
-  if (isDockerEnvironment()) {
-    return API_CONFIG.BACKEND.DOCKER;
-  } else {
-    return API_CONFIG.BACKEND.LOCAL;
+  const environment = getEnvironment();
+  
+  switch (environment) {
+    case 'production':
+      return API_CONFIG.BACKEND.PRODUCTION;
+    case 'docker':
+      return API_CONFIG.BACKEND.DOCKER;
+    case 'local':
+    default:
+      return API_CONFIG.BACKEND.LOCAL;
   }
 };
 
@@ -33,9 +51,10 @@ const getBackendBaseUrl = () => {
 export const fetchTrends = async (keyword) => {
   const baseUrl = getBackendBaseUrl();
   const url = `${baseUrl}${API_CONFIG.ENDPOINTS.TRENDS}`;
+  const environment = getEnvironment();
   
   if (DEV_CONFIG.ENABLE_LOGS) {
-    console.log(`Consultando backend en: ${url} (Entorno: ${isDockerEnvironment() ? 'Docker' : 'Local'})`);
+    console.log(`Consultando backend en: ${url} (Entorno: ${environment})`);
   }
   
   try {
@@ -48,12 +67,45 @@ export const fetchTrends = async (keyword) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+      // Intentar obtener información detallada del error del backend
+      try {
+        const errorData = await response.json();
+        
+        if (response.status === 429 && errorData.tipo === 'RATE_LIMITED') {
+          throw new Error(
+            errorData.mensaje || 
+            'Google Trends ha bloqueado temporalmente las consultas. Espera 15-30 minutos antes de intentar nuevamente.'
+          );
+        }
+        
+        if (response.status === 503 && errorData.tipo === 'SERVICE_ERROR') {
+          throw new Error(
+            errorData.mensaje || 
+            'El servicio de tendencias no está disponible temporalmente.'
+          );
+        }
+        
+        // Para otros errores con información del backend
+        throw new Error(errorData.mensaje || errorData.error || `Error HTTP: ${response.status}`);
+        
+      } catch {
+        // Si no se puede parsear la respuesta, usar error genérico
+        throw new Error(`Error HTTP: ${response.status} - ${response.statusText}`);
+      }
     }
 
     return await response.json();
   } catch (error) {
     console.error('Error en fetchTrends:', error);
+    
+    // No envolver el error si ya tiene un mensaje específico
+    if (error.message.includes('Google Trends') || 
+        error.message.includes('servicio de tendencias') ||
+        error.message.includes('bloqueado temporalmente')) {
+      throw error;
+    }
+    
+    // Para otros errores, usar el mensaje original o uno genérico
     throw new Error(`Error al obtener tendencias: ${error.message}`);
   }
 };
@@ -63,11 +115,14 @@ export const fetchTrends = async (keyword) => {
  * @returns {Object} Información del entorno
  */
 export const getEnvironmentInfo = () => {
+  const environment = getEnvironment();
   return {
-    isDocker: isDockerEnvironment(),
+    environment: environment,
     hostname: window.location.hostname,
     backendUrl: getBackendBaseUrl(),
-    environment: isDockerEnvironment() ? 'Docker' : 'Local Development'
+    isProduction: environment === 'production',
+    isDocker: environment === 'docker',
+    isLocal: environment === 'local'
   };
 };
 
