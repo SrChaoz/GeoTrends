@@ -3,8 +3,10 @@ const axios = require('axios');
 const fetchTrendsFromService = async (keyword) => {
   // Detectar automáticamente el entorno y usar la URL apropiada
   let trendsUrl;
-  
-  if (process.env.DOCKER_URL) {
+  if (process.env.SERVICE_URL) {
+    // Configuración para microservicio Python en Render
+    trendsUrl = process.env.SERVICE_URL + '/trends';
+  } else if (process.env.DOCKER_URL) {
     // Configuración para Docker Compose
     trendsUrl = process.env.DOCKER_URL;
   } else if (process.env.K_SERVICE) {
@@ -14,7 +16,6 @@ const fetchTrendsFromService = async (keyword) => {
     // Entorno local
     trendsUrl = 'http://localhost:5001/trends';
   }
-  
   console.log(`Consultando trends service en: ${trendsUrl}`);
   
   try {
