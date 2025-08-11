@@ -11,9 +11,9 @@ export const API_CONFIG = {
   BACKEND: {
     LOCAL: import.meta.env.VITE_BACKEND_URL_LOCAL || 'http://localhost:3000',
     DOCKER: import.meta.env.VITE_BACKEND_URL_DOCKER || 'http://backend:3000',
-    PRODUCTION: import.meta.env.VITE_BACKEND_URL_PRODUCTION || 'https://geotrends-backend-3p4zaaeqba-uc.a.run.app'
+    PRODUCTION: import.meta.env.VITE_BACKEND_URL_PRODUCTION || 'https://geotrends-backend.onrender.com'
   },
-  
+
   // Endpoints disponibles
   ENDPOINTS: {
     TRENDS: '/api/trends',
