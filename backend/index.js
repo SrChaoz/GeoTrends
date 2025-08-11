@@ -4,7 +4,11 @@ const bodyParser = require('body-parser');
 const trendsRoutes = require('./routes/trendsRoutes');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(bodyParser.json());
 
 // Health check endpoint
